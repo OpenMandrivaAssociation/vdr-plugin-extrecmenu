@@ -2,7 +2,7 @@
 %define plugin	extrecmenu
 %define name	vdr-plugin-%plugin
 %define version	1.1
-%define rel	2
+%define rel	3
 
 Summary:	VDR plugin: Extended recordings menu
 Name:		%name
