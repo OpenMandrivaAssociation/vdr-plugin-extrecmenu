@@ -13,6 +13,7 @@ License:	GPL
 URL:		http://martins-kabuff.de/extrecmenu_en.html
 Source:		http://martins-kabuff.de/download/vdr-%plugin-%version.tgz
 Patch0:		extrecmenu-1.1-i18n-1.6.patch
+Patch1:		extrecmenu-const-char-gcc4.4.patch
 BuildRoot:	%{_tmppath}/%{name}-buildroot
 BuildRequires:	vdr-devel >= 1.6.0
 Requires:	vdr-abi = %vdr_abi
@@ -29,6 +30,7 @@ messages for deleting, moving and renaming a recording.
 %prep
 %setup -q -n %plugin-%version
 %patch0 -p1
+%patch1 -p1
 %vdr_plugin_prep
 
 %build
