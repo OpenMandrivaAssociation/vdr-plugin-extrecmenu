@@ -1,0 +1,2955 @@
+
+This is a semi-automatically created i18n adaptation patch and may contain
+errors (such as missing translations). This should only be used as a
+temporary measure until the upstream plugin maintainer fixes the plugin
+properly according to the instructions in i18n-to-gettext.pl.
+
+Created for Mandriva Linux packaging by Anssi Hannula <anssi@mandriva.org>.
+
+
+Index: extrecmenu-1.1/Makefile
+===================================================================
+--- extrecmenu-1.1/Makefile
++++ extrecmenu-1.1/Makefile	2008-04-23 22:37:17.000000000 +0300
+@@ -52,7 +52,7 @@
+ 
+ ### The object files (add further files here):
+ 
+-OBJS = $(PLUGIN).o mymenurecordings.o myreplaycontrol.o i18n.o \
++OBJS = $(PLUGIN).o mymenurecordings.o myreplaycontrol.o  \
+        mymenusetup.o mymenucommands.o patchfont.o tools.o mymenueditrecording.o
+ 
+ ### Implicit rules:
+@@ -69,9 +69,34 @@
+ 
+ -include $(DEPFILE)
+ 
++### Internationalization (I18N):
++
++PODIR     = po
++LOCALEDIR = $(VDRDIR)/locale
++I18Npo    = $(wildcard $(PODIR)/*.po)
++I18Nmsgs  = $(addprefix $(LOCALEDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file, $(I18Npo), $(basename $(file))))))
++I18Npot   = $(PODIR)/$(PLUGIN).pot
++
++%.mo: %.po
++	msgfmt -c -o $@ $<
++
++$(I18Npot): $(wildcard *.[ch] *.[ch]xx *.cc *.[ch]pp *.hh)
++	xgettext -C -cTRANSLATORS --no-wrap --no-location -k -ktr -ktrNOOP --msgid-bugs-address='<http://qa.mandriva.com/>' -o $@ $^
++
++%.po: $(I18Npot)
++	msgmerge -U --no-wrap --no-location --backup=none -q $@ $<
++	@touch $@
++
++$(I18Nmsgs): $(LOCALEDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
++	@mkdir -p $(dir $@)
++	cp $< $@
++
++.PHONY: i18n
++i18n: $(I18Nmsgs)
++
+ ### Targets:
+ 
+-all: libvdr-$(PLUGIN).so
++all: libvdr-$(PLUGIN).so i18n
+ 
+ libvdr-$(PLUGIN).so: $(OBJS)
+ 	$(CXX) $(CXXFLAGS) -shared $(OBJS) -o $@
+@@ -86,4 +111,5 @@
+ 	@echo Distribution package created as $(PACKAGE).tgz
+ 
+ clean:
++	@-rm -f $(PODIR)/*.mo $(PODIR)/*.pot
+ 	@-rm -f $(OBJS) $(DEPFILE) *.so *.tgz core* *~
+Index: extrecmenu-1.1/extrecmenu.c
+===================================================================
+--- extrecmenu-1.1/extrecmenu.c
++++ extrecmenu-1.1/extrecmenu.c	2008-04-23 22:37:17.000000000 +0300
+@@ -6,13 +6,13 @@
+ #include <vdr/plugin.h>
+ #include "mymenusetup.h"
+ #include "mymenurecordings.h"
+-#include "i18n.h"
++
+ #include "tools.h"
+ 
+ using namespace std;
+ 
+ static const char *VERSION        = "1.1";
+-static const char *DESCRIPTION    = "Extended recordings menu";
++static const char *DESCRIPTION    = trNOOP("Extended recordings menu");
+ static const char *MAINMENUENTRY  = "ExtRecMenu";
+ 
+ // --- cPluginExtrecmenu ------------------------------------------------------
+@@ -60,7 +60,7 @@
+ 
+ bool cPluginExtrecmenu::Initialize(void)
+ {
+-  RegisterI18n(Phrases);
++  
+  
+   return true;
+ }
+Index: extrecmenu-1.1/i18n.c
+===================================================================
+--- extrecmenu-1.1/i18n.c
++++ extrecmenu-1.1/i18n.c	2008-04-23 22:37:17.000000000 +0300
+@@ -1,1264 +0,0 @@
+-/*
+- * See the README file for copyright information and how to reach the author.
+- */
+-
+-#include "i18n.h"
+-
+-const tI18nPhrase Phrases[] = {
+-  { "Extended recordings menu",
+-    "Erweitertes Aufzeichnungs-Menü",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Menu enregistrement étandu",
+-    "",
+-    "Laajennettu tallennevalikko",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Roz¹íøené menu nahrávek",
+-  },
+-  { "Button$Open",
+-    "Öffnen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Ouvrir",
+-    "",
+-    "Avaa",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Otevøít",
+-  },
+-  { "Button$Back",
+-    "Zurück",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Retour",
+-    "",
+-    "Takaisin",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Zpìt",
+-  },
+-  { "Button$Cancel",
+-    "Abbrechen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Interrompre",
+-    "",
+-    "Peruuta",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Zru¹it",
+-  },
+-  { "Button$Play",
+-    "Wiedergabe",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Montrer",
+-    "",
+-    "Toista",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pøehrát",
+-  },
+-  { "Button$Commands",
+-    "Befehle",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Commande",
+-    "",
+-    "Komennot",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pøíkazy",
+-  },
+-  { "Button$Rewind",
+-    "Anfang",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Début",
+-    "",
+-    "Alkuun",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Na zaèátek",
+-  },
+-  { "Button$Create",
+-    "Anlegen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Créer",
+-    "",
+-    "Luo",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Vytvoøit",
+-  },
+-  { "Button$Edit",
+-    "Editieren",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Éditer",
+-    "",
+-    "Muokkaa",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Editovat",
+-  },
+-  { "Button$Rename",
+-    "Umbenennen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Renommer",
+-    "",
+-    "Nimeä",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pøejmenovat",
+-  },
+-  { "Button$Move",
+-    "Verschieben",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Déplacer",
+-    "",
+-    "Siirrä",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pøesunout",
+-  },
+-  { "Button$Delete",
+-    "Löschen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Effacer",
+-    "",
+-    "Poista",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Smazat",
+-  },
+-  { "Button$Info",
+-    "Info",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Info",
+-    "",
+-    "Tiedot",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Info",
+-  },
+-  { "New folder",
+-    "Neues Verzeichnis",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Nouveau dossier",
+-    "",
+-    "Uusi kansio",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Nový adresáø",
+-  },
+-  { "Rename",
+-    "Umbenennen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Renommer",
+-    "",
+-    "Nimeä",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pøejmenovat",
+-  },
+-  { "Show recording date",
+-    "Aufnahmedatum anzeigen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Afiicher la date d'enregistrement",
+-    "",
+-    "Näytä tallenteen päiväys",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Zobrazit datum nahrávky",
+-  },
+-  { "Show recording time",
+-    "Aufnahmezeit anzeigen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Afficher l'heure d'enregistrement",
+-    "",
+-    "Näytä tallenteen ajankohta",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Zobrazit èas nahrávky",
+-  },
+-  { "Show recording length",
+-    "Aufnahmelänge anzeigen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Afficher la longeur de l'enregistrement",
+-    "",
+-    "Näytä tallenteen kesto",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Zobrazit délku nahrávky",
+-  },
+-  { "Hide main menu entry",
+-    "Hauptmenüeintrag ausblenden",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Menu Enregistrement étandu invisible",
+-    "",
+-    "Piilota valinta päävalikosta",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Skrýt polo¾ku v hlavním menu",
+-  },
+-  { "Replace original recordings menu",
+-    "Originales Aufzeichnungsmenü ersetzen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Remplacer le nenu original Enregistrement",
+-    "",
+-    "Korvaa alkuperäinen tallennevalikko",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Nahradit originální menu nahrávek",
+-  },
+-  { "Show alternative to new marker",
+-    "Alternative zu Neu-Marker anzeigen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Afficher les nouveaux symbols alternatifs",
+-    "",
+-    "Merkitse uudet tallenteet symbolilla",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Zobrazit alternativu k novým znaèkám",
+-  },
+-  { "Please insert DVD %s",
+-    "Bitte DVD %s einlegen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Mettez le DVD %s dans le lecteur",
+-    "",
+-    "Laita DVD %s asemaan",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Vlo¾te prosím DVD %s",
+-  },
+-  { "Error while mounting DVD!",
+-    "Fehler beim Einhängen der DVD!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Erreur lors du montage du DVD!",
+-    "",
+-    "DVD:n avaaminen epäonnistui!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Chyba bìhem pøipojování DVD!",
+-  },
+-  { "Recording not found on DVD!",
+-    "Aufzeichnung auf DVD nicht gefunden!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Il n'y a pas d'enregistrement sur le DVD!",
+-    "",
+-    "Tallennetta ei löydy DVD:ltä!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Nahrávka nebyla na DVD nalezena!",
+-  },
+-  { "Script 'dvdarchive.sh' not found!",
+-    "Skript 'dvdarchive.sh' wurde nicht gefunden!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Impossible de trouver le script 'dvdarchive.sh'!",
+-    "",
+-    "'dvdarchive.sh'-skriptiä ei löydetä!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Skript 'dvdarchive.sh' nebyl nalezen!",
+-  },
+-  { "[base dir]",
+-    "[Stammverzeichnis]",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "[Dossier racine]",
+-    "",
+-    "[juurihakemisto]",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "[základní adresáø]",
+-  },
+-  { "No DVD in drive!",
+-    "Keine DVD im Laufwerk!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pas de DVD dans le lecteur!",
+-    "",
+-    "Asemassa ei ole DVD-levyä!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "V jednotce není DVD!",
+-  },
+-  { "Error while linking [0-9]*.vdr!",
+-    "Fehler beim Anlegen der Symlinks [0-9]*.vdr!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Erreur lors de la création des racourcis [0-9]*.vdr!",
+-    "",
+-    "Tiedostojen [0-9]*.vdr linkittäminen epäonnistui!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Chyba pøi spojování [0-9]*.vdr!",
+-  },
+-  { "sudo or mount --bind / umount error (vfat system)",
+-    "sudo oder mount --bind / umount Fehler (VFAT-System)",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Erreur sudo ou mount --bind / umount (Systeme VFAT)",
+-    "",
+-    "Sudo tai mount --bind / umount -komento epäonnistui (VFAT)!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "sudo nebo mount --bind / umount selhal (VFAT-systém)",
+-  },
+-  { "Details",
+-    "Details",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Détails",
+-    "",
+-    "Lisätiedot",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Detaily",
+-  },
+-  { "DVD plugin is not installed!",
+-    "Das DVD-Plugin ist nicht installiert!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Le plugin DVD n'est pas installé!",
+-    "",
+-    "DVD-laajennosta ei löydy!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Modul DVD není nainstalován!",
+-  },
+-  { "Invalid filename!",
+-    "Ungültiger Dateiname!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Nom de fichiers n'est pas valide'",
+-    "",
+-    "Virheellinen tiedoston nimi!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Chybné jméno souboru!",
+-  },
+-  { "Moving into own sub-directory not allowed!",
+-    "Verschieben in eigenes Unterverzeichnis nicht erlaubt!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Déplacer dans le sous-dossier propre, n'est pas possible!",
+-    "",
+-    "Siirto omaan alihakemistoon ei ole sallittu!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pøesun do vlastního podadresáøe není povolen!",
+-  },
+-  { "Sort by name",
+-    "Sortieren nach Namen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Triage selon le nom",
+-    "",
+-    "Tallenteet järjestetään nimen mukaan",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Tøídit podle jména",
+-  },
+-  { "Sort by date",
+-    "Sortieren nach Datum",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Triage selon date",
+-    "",
+-    "Tallenteet järjestetään päivämäärän mukaan",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Tøídit podle data",
+-  },
+-  { "Show nr. of new recordings of a directory",
+-    "Anzahl der neuen Aufz. eines Ordners anzeigen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Afficher le nombre de nouveaux enregistrements dans les dossiers",
+-    "",
+-    "Näytä uusien tallenteiden lukumäärä",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Zobrazovat poèet nových nahrávek v adresáøi",
+-  },
+-  { "Sorting",
+-    "Sortierung",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Triage",
+-    "",
+-    "Järjestys",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Tøídìní",
+-  },
+-  { "ascending",
+-    "aufsteigend",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "montant",
+-    "",
+-    "nouseva",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "vzestupnì",
+-  },
+-  { "descending",
+-    "absteigend",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "descendant",
+-    "",
+-    "laskeva",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "sestupnì",
+-  },
+-  { "Jump to last replayed recording",
+-    "Springe zur zuletzt abgespielten Aufzeichnung",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Retour au dernier enregistrement lu",
+-    "",
+-    "Siirry viimeksi toistettuun tallenteeseen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Skoèit na poslední pøehrávanou nahrávku",
+-  },
+-  { "Call plugin after playback",
+-    "Nach Wiedergabe Plugin aufrufen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Après la lecture démarer le plugin",
+-    "",
+-    "Avaa laajennos toiston loputtua",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Návrat do modulu po ukonèení pøehrávání",
+-  },
+-  { "Move recordings in progress",
+-    "Es werden Aufzeichungen verschoben",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Enregistrements en cours de déplacement",
+-    "",
+-    "Tallenteiden siirto käynnissä",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Probíhá pøesouvání nahrávek",
+-  },
+-  { "Limit bandwidth for move recordings",
+-    "Bandbreite beim Verschieben begrenzen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Limiter la bande passante lors du déplacement",
+-    "",
+-    "Rajoita tallenteiden siirtokaistaa",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Omezit rychlost pro pøesun nahrávek",
+-  },
+-  { "Target filesystem filled- try anyway?",
+-    "Zielpartition voll - trotzdem versuchen?",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "La partition de déstination est pleine - essayer tout de même?",
+-    "",
+-    "Kohdepartitio täynnä - yritetäänkö silti?",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Cílový oddíl je plný - zkusit znovu?",
+-  },
+-  { "Path",
+-    "Pfad",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Chemin",
+-    "",
+-    "Polku",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Cesta",
+-  },
+-  { "Size",
+-    "Größe",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Taille",
+-    "",
+-    "Koko",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Velikost",
+-  },
+-  { "Use VDR's recording info menu",
+-    "VDRs Aufzeichnungs-Info-Menü benutzen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Utiliser le menu info enregistrement de VDR",
+-    "",
+-    "Käytä alkuperäistä tallenteen tiedot -valikkoa",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pou¾ívat info menu nahrávek VDR",
+-  },
+-  { "Added recording to cutter queue",
+-    "Aufzeichnung der Schnitt-Warteschlange hinzugefügt",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Enregistrement ajouté à la file d'attente de découpe",
+-    "",
+-    "Tallenne on lisätty leikkausjonoon",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Nahrávka pøidána do støihové fronty",
+-  },
+-  { "Recording already in cutter queue!",
+-    "Aufzeichnung bereits in Schnitt-Warteschlange",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "L'enregistrement est déjà dans la queue d'attente découpe!",
+-    "",
+-    "Tallenne on jo leikkausjonossa!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Nahrávka je ji¾ ve støihové frontì!",
+-  },
+-  { "Cutter queue not empty",
+-    "Schnitt-Warteschlange nicht leer",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Queue d'attente découpe n'est pas vide",
+-    "",
+-    "Leikkausjono ei ole tyhjä",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Støihová fronta není prázdná",
+-  },
+-  { "Move recordings in progress",
+-    "Es werden Aufzeichnungen verschoben",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Des enregistrements sont en déplacement",
+-    "",
+-    "Tallenteiden siirto käynnissä",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Probíhá pøesouvání nahrávek",
+-  },
+-  { "Cancel moving?",
+-    "Verschieben abbrechen?",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Interrompre le déplacement?",
+-    "",
+-    "Peruutetaanko siirto?",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pøeru¹it pøesouvání?",
+-  },
+-  { "Patch font",
+-    "Font patchen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Patch des police",
+-    "",
+-    "Käytä paikattua kirjasinta",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Upravit font",
+-  },
+-  { "Show free disk space for each file system",
+-    "Freien Speicherplatz für jede Partition anzeigen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Afficher la place libre de chaque partition",
+-    "",
+-    "Näytä vapaa levytila jokaisella tiedostojärjestelmällä",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Zobrazit volné místo pro ka¾dý souborový systém",
+-  },
+-  { "Can't get filesystem information",
+-    "Kann Dateisysteminformationen nicht ermitteln",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Impossible de déterminer les informations du système de fichiers",
+-    "",
+-    "Tiedostojärjestelmän tietojen lukeminen epäonnistui",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Nelze získat informace o souborovém systémy",
+-  },
+-  { "Rename/Move failed!",
+-    "Umbenennen/Verschieben fehlgeschlagen!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Renommer/déplacer à échoué!",
+-    "",
+-    "Nimeäminen/siirto epäonnistui!",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Pøejmenování/pøesun selhal!",
+-  },
+-  { "Use cutter queue",
+-    "Schnittwarteschlange benutzen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-  },
+-  { NULL }
+-  };
+-
+Index: extrecmenu-1.1/i18n.h
+===================================================================
+--- extrecmenu-1.1/i18n.h
++++ extrecmenu-1.1/i18n.h	2008-04-23 22:37:17.000000000 +0300
+@@ -1,12 +0,0 @@
+-/*
+- * See the README file for copyright information and how to reach the author.
+- */
+-
+-#ifndef _I18N__H
+-#define _I18N__H
+-
+-#include <vdr/i18n.h>
+-
+-extern const tI18nPhrase Phrases[];
+-
+-#endif //_I18N__H
+Index: extrecmenu-1.1/po/cs_CZ.po
+===================================================================
+--- extrecmenu-1.1/po/cs_CZ.po
++++ extrecmenu-1.1/po/cs_CZ.po	2008-04-23 22:37:17.000000000 +0300
+@@ -0,0 +1,310 @@
++# VDR extrecmenu plugin language source file.
++# Copyright (C) YEAR THE VDR-extrecmenu'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-extrecmenu package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-extrecmenu\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-23 22:37+0300\n"
++"PO-Revision-Date: 2008-04-23 22:37+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-2\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: extrecmenu.c:15
++msgid "Extended recordings menu"
++msgstr "Roz¹íøené menu nahrávek"
++
++#: mymenueditrecording.c:17
++msgid "Rename"
++msgstr "Pøejmenovat"
++
++#: mymenueditrecording.c:48 mymenueditrecording.c:123 mymenurecordings.c:75
++#: mymenurecordings.c:78
++msgid "Name"
++msgstr ""
++
++#: mymenueditrecording.c:72 mymenueditrecording.c:137
++msgid "Invalid filename!"
++msgstr "Chybné jméno souboru!"
++
++#: mymenueditrecording.c:85 tools.c:106 tools.c:157 tools.c:566
++msgid "Creating directories failed!"
++msgstr ""
++
++#: mymenueditrecording.c:120 mymenueditrecording.c:122
++msgid "New folder"
++msgstr "Nový adresáø"
++
++#: mymenueditrecording.c:217 mymenurecordings.c:545 mymenurecordings.c:547
++#: mymenurecordings.c:548
++msgid "Button$Cancel"
++msgstr "Zru¹it"
++
++#: mymenueditrecording.c:217
++msgid "Button$Create"
++msgstr "Vytvoøit"
++
++#: mymenueditrecording.c:217 mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Move"
++msgstr "Pøesunout"
++
++#: mymenueditrecording.c:230 mymenueditrecording.c:304
++msgid "[base dir]"
++msgstr "[základní adresáø]"
++
++#: mymenueditrecording.c:371 mymenueditrecording.c:394
++msgid "Target filesystem filled - try anyway?"
++msgstr ""
++
++#: mymenueditrecording.c:384 tools.c:133
++msgid "Moving into own sub-directory not allowed!"
++msgstr "Pøesun do vlastního podadresáøe není povolen!"
++
++#: mymenueditrecording.c:420
++msgid "Can't get filesystem information"
++msgstr "Nelze získat informace o souborovém systémy"
++
++#: mymenueditrecording.c:468 mymenurecordings.c:1095
++msgid "Details"
++msgstr "Detaily"
++
++#: mymenueditrecording.c:474 mymenurecordings.c:92
++msgid "Priority"
++msgstr ""
++
++#: mymenueditrecording.c:475 mymenurecordings.c:93
++msgid "Lifetime"
++msgstr ""
++
++#: mymenurecordings.c:42
++msgid "Recording info"
++msgstr ""
++
++#: mymenurecordings.c:47
++msgid "Button$Back"
++msgstr "Zpìt"
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Play"
++msgstr "Pøehrát"
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Rewind"
++msgstr "Na zaèátek"
++
++#: mymenurecordings.c:76
++msgid "Path"
++msgstr "Cesta"
++
++#: mymenurecordings.c:82
++msgid "Channel"
++msgstr ""
++
++#: mymenurecordings.c:88 mymenurecordings.c:90
++msgid "Size"
++msgstr "Velikost"
++
++#: mymenurecordings.c:390 mymenurecordings.c:759
++msgid "Error while mounting DVD!"
++msgstr "Chyba bìhem pøipojování DVD!"
++
++#: mymenurecordings.c:493
++msgid "Recordings"
++msgstr ""
++
++#: mymenurecordings.c:498
++msgid "free"
++msgstr ""
++
++#: mymenurecordings.c:543 mymenurecordings.c:544 mymenurecordings.c:546
++msgid "Button$Edit"
++msgstr "Editovat"
++
++#: mymenurecordings.c:543 mymenurecordings.c:548
++msgid "Button$Open"
++msgstr "Otevøít"
++
++#: mymenurecordings.c:544 mymenurecordings.c:545 mymenurecordings.c:546
++#: mymenurecordings.c:547
++msgid "Button$Commands"
++msgstr "Pøíkazy"
++
++#: mymenurecordings.c:544 mymenurecordings.c:545
++msgid "Button$Info"
++msgstr "Info"
++
++#: mymenurecordings.c:650
++msgid "Error while accessing recording!"
++msgstr ""
++
++#: mymenurecordings.c:723
++#, c-format
++msgid "Please insert DVD %s"
++msgstr "Vlo¾te prosím DVD %s"
++
++#: mymenurecordings.c:740
++msgid "DVD plugin is not installed!"
++msgstr "Modul DVD není nainstalován!"
++
++#: mymenurecordings.c:761
++msgid "No DVD in drive!"
++msgstr "V jednotce není DVD!"
++
++#: mymenurecordings.c:763
++msgid "Recording not found on DVD!"
++msgstr "Nahrávka nebyla na DVD nalezena!"
++
++#: mymenurecordings.c:765
++msgid "Error while linking [0-9]*.vdr!"
++msgstr "Chyba pøi spojování [0-9]*.vdr!"
++
++#: mymenurecordings.c:767
++msgid "sudo or mount --bind / umount error (vfat system)"
++msgstr "sudo nebo mount --bind / umount selhal (VFAT-systém)"
++
++#: mymenurecordings.c:769
++msgid "Script 'dvdarchive.sh' not found!"
++msgstr "Skript 'dvdarchive.sh' nebyl nalezen!"
++
++#: mymenurecordings.c:819
++msgid "Delete recording?"
++msgstr ""
++
++#: mymenurecordings.c:824
++msgid "Timer still recording - really delete?"
++msgstr ""
++
++#: mymenurecordings.c:857
++msgid "Error while deleting recording!"
++msgstr ""
++
++#: mymenurecordings.c:955
++msgid "Recording commands"
++msgstr ""
++
++#: mymenurecordings.c:981
++msgid "Sort by date"
++msgstr "Tøídit podle data"
++
++#: mymenurecordings.c:990
++msgid "Sort by name"
++msgstr "Tøídit podle jména"
++
++#: mymenurecordings.c:1051 mymenurecordings.c:1086
++msgid "Cancel moving?"
++msgstr "Pøeru¹it pøesouvání?"
++
++#: mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Rename"
++msgstr "Pøejmenovat"
++
++#: mymenurecordings.c:1078
++msgid "Cancel editing?"
++msgstr ""
++
++#: mymenurecordings.c:1095
++msgid "Button$Delete"
++msgstr "Smazat"
++
++#: mymenusetup.c:49
++msgid "ascending"
++msgstr "vzestupnì"
++
++#: mymenusetup.c:50
++msgid "descending"
++msgstr "sestupnì"
++
++#: mymenusetup.c:52
++msgid "Show recording date"
++msgstr "Zobrazit datum nahrávky"
++
++#: mymenusetup.c:53
++msgid "Show recording time"
++msgstr "Zobrazit èas nahrávky"
++
++#: mymenusetup.c:54
++msgid "Show recording length"
++msgstr "Zobrazit délku nahrávky"
++
++#: mymenusetup.c:55
++msgid "Show nr. of new recordings of a directory"
++msgstr "Zobrazovat poèet nových nahrávek v adresáøi"
++
++#: mymenusetup.c:56
++msgid "Show alternative to new marker"
++msgstr "Zobrazit alternativu k novým znaèkám"
++
++#: mymenusetup.c:57
++msgid "Show free disk space for each file system"
++msgstr "Zobrazit volné místo pro ka¾dý souborový systém"
++
++#: mymenusetup.c:58
++msgid "Sorting"
++msgstr "Tøídìní"
++
++#: mymenusetup.c:59
++msgid "Hide main menu entry"
++msgstr "Skrýt polo¾ku v hlavním menu"
++
++#: mymenusetup.c:61
++msgid "Replace original recordings menu"
++msgstr "Nahradit originální menu nahrávek"
++
++#: mymenusetup.c:63
++msgid "Jump to last replayed recording"
++msgstr "Skoèit na poslední pøehrávanou nahrávku"
++
++#: mymenusetup.c:64
++msgid "Call plugin after playback"
++msgstr "Návrat do modulu po ukonèení pøehrávání"
++
++#: mymenusetup.c:66
++msgid "Patch font"
++msgstr "Upravit font"
++
++#: mymenusetup.c:68
++msgid "Limit bandwidth for move recordings"
++msgstr "Omezit rychlost pro pøesun nahrávek"
++
++#: mymenusetup.c:69
++msgid "Use VDR's recording info menu"
++msgstr "Pou¾ívat info menu nahrávek VDR"
++
++#: mymenusetup.c:70
++msgid "Use cutter queue"
++msgstr ""
++
++#: myreplaycontrol.c:47
++msgid "Recording already in cutter queue!"
++msgstr "Nahrávka je ji¾ ve støihové frontì!"
++
++#: myreplaycontrol.c:54
++msgid "No editing marks defined!"
++msgstr ""
++
++#: myreplaycontrol.c:58
++msgid "Added recording to cutter queue"
++msgstr "Nahrávka pøidána do støihové fronty"
++
++#: tools.c:113 tools.c:627 tools.c:681
++msgid "Rename/Move failed!"
++msgstr "Pøejmenování/pøesun selhal!"
++
++#: tools.c:273
++msgid "Cutter queue not empty"
++msgstr "Støihová fronta není prázdná"
++
++#: tools.c:276
++msgid "Move recordings in progress"
++msgstr "Probíhá pøesouvání nahrávek"
++
++#: tools.c:315
++msgid "Can't start editing process!"
++msgstr ""
+Index: extrecmenu-1.1/po/de_DE.po
+===================================================================
+--- extrecmenu-1.1/po/de_DE.po
++++ extrecmenu-1.1/po/de_DE.po	2008-04-23 22:37:16.000000000 +0300
+@@ -0,0 +1,310 @@
++# VDR extrecmenu plugin language source file.
++# Copyright (C) YEAR THE VDR-extrecmenu'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-extrecmenu package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-extrecmenu\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-23 22:37+0300\n"
++"PO-Revision-Date: 2008-04-23 22:37+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-15\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: extrecmenu.c:15
++msgid "Extended recordings menu"
++msgstr "Erweitertes Aufzeichnungs-Menü"
++
++#: mymenueditrecording.c:17
++msgid "Rename"
++msgstr "Umbenennen"
++
++#: mymenueditrecording.c:48 mymenueditrecording.c:123 mymenurecordings.c:75
++#: mymenurecordings.c:78
++msgid "Name"
++msgstr ""
++
++#: mymenueditrecording.c:72 mymenueditrecording.c:137
++msgid "Invalid filename!"
++msgstr "Ungültiger Dateiname!"
++
++#: mymenueditrecording.c:85 tools.c:106 tools.c:157 tools.c:566
++msgid "Creating directories failed!"
++msgstr ""
++
++#: mymenueditrecording.c:120 mymenueditrecording.c:122
++msgid "New folder"
++msgstr "Neues Verzeichnis"
++
++#: mymenueditrecording.c:217 mymenurecordings.c:545 mymenurecordings.c:547
++#: mymenurecordings.c:548
++msgid "Button$Cancel"
++msgstr "Abbrechen"
++
++#: mymenueditrecording.c:217
++msgid "Button$Create"
++msgstr "Anlegen"
++
++#: mymenueditrecording.c:217 mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Move"
++msgstr "Verschieben"
++
++#: mymenueditrecording.c:230 mymenueditrecording.c:304
++msgid "[base dir]"
++msgstr "[Stammverzeichnis]"
++
++#: mymenueditrecording.c:371 mymenueditrecording.c:394
++msgid "Target filesystem filled - try anyway?"
++msgstr ""
++
++#: mymenueditrecording.c:384 tools.c:133
++msgid "Moving into own sub-directory not allowed!"
++msgstr "Verschieben in eigenes Unterverzeichnis nicht erlaubt!"
++
++#: mymenueditrecording.c:420
++msgid "Can't get filesystem information"
++msgstr "Kann Dateisysteminformationen nicht ermitteln"
++
++#: mymenueditrecording.c:468 mymenurecordings.c:1095
++msgid "Details"
++msgstr "Details"
++
++#: mymenueditrecording.c:474 mymenurecordings.c:92
++msgid "Priority"
++msgstr ""
++
++#: mymenueditrecording.c:475 mymenurecordings.c:93
++msgid "Lifetime"
++msgstr ""
++
++#: mymenurecordings.c:42
++msgid "Recording info"
++msgstr ""
++
++#: mymenurecordings.c:47
++msgid "Button$Back"
++msgstr "Zurück"
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Play"
++msgstr "Wiedergabe"
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Rewind"
++msgstr "Anfang"
++
++#: mymenurecordings.c:76
++msgid "Path"
++msgstr "Pfad"
++
++#: mymenurecordings.c:82
++msgid "Channel"
++msgstr ""
++
++#: mymenurecordings.c:88 mymenurecordings.c:90
++msgid "Size"
++msgstr "Größe"
++
++#: mymenurecordings.c:390 mymenurecordings.c:759
++msgid "Error while mounting DVD!"
++msgstr "Fehler beim Einhängen der DVD!"
++
++#: mymenurecordings.c:493
++msgid "Recordings"
++msgstr ""
++
++#: mymenurecordings.c:498
++msgid "free"
++msgstr ""
++
++#: mymenurecordings.c:543 mymenurecordings.c:544 mymenurecordings.c:546
++msgid "Button$Edit"
++msgstr "Editieren"
++
++#: mymenurecordings.c:543 mymenurecordings.c:548
++msgid "Button$Open"
++msgstr "Öffnen"
++
++#: mymenurecordings.c:544 mymenurecordings.c:545 mymenurecordings.c:546
++#: mymenurecordings.c:547
++msgid "Button$Commands"
++msgstr "Befehle"
++
++#: mymenurecordings.c:544 mymenurecordings.c:545
++msgid "Button$Info"
++msgstr "Info"
++
++#: mymenurecordings.c:650
++msgid "Error while accessing recording!"
++msgstr ""
++
++#: mymenurecordings.c:723
++#, c-format
++msgid "Please insert DVD %s"
++msgstr "Bitte DVD %s einlegen"
++
++#: mymenurecordings.c:740
++msgid "DVD plugin is not installed!"
++msgstr "Das DVD-Plugin ist nicht installiert!"
++
++#: mymenurecordings.c:761
++msgid "No DVD in drive!"
++msgstr "Keine DVD im Laufwerk!"
++
++#: mymenurecordings.c:763
++msgid "Recording not found on DVD!"
++msgstr "Aufzeichnung auf DVD nicht gefunden!"
++
++#: mymenurecordings.c:765
++msgid "Error while linking [0-9]*.vdr!"
++msgstr "Fehler beim Anlegen der Symlinks [0-9]*.vdr!"
++
++#: mymenurecordings.c:767
++msgid "sudo or mount --bind / umount error (vfat system)"
++msgstr "sudo oder mount --bind / umount Fehler (VFAT-System)"
++
++#: mymenurecordings.c:769
++msgid "Script 'dvdarchive.sh' not found!"
++msgstr "Skript 'dvdarchive.sh' wurde nicht gefunden!"
++
++#: mymenurecordings.c:819
++msgid "Delete recording?"
++msgstr ""
++
++#: mymenurecordings.c:824
++msgid "Timer still recording - really delete?"
++msgstr ""
++
++#: mymenurecordings.c:857
++msgid "Error while deleting recording!"
++msgstr ""
++
++#: mymenurecordings.c:955
++msgid "Recording commands"
++msgstr ""
++
++#: mymenurecordings.c:981
++msgid "Sort by date"
++msgstr "Sortieren nach Datum"
++
++#: mymenurecordings.c:990
++msgid "Sort by name"
++msgstr "Sortieren nach Namen"
++
++#: mymenurecordings.c:1051 mymenurecordings.c:1086
++msgid "Cancel moving?"
++msgstr "Verschieben abbrechen?"
++
++#: mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Rename"
++msgstr "Umbenennen"
++
++#: mymenurecordings.c:1078
++msgid "Cancel editing?"
++msgstr ""
++
++#: mymenurecordings.c:1095
++msgid "Button$Delete"
++msgstr "Löschen"
++
++#: mymenusetup.c:49
++msgid "ascending"
++msgstr "aufsteigend"
++
++#: mymenusetup.c:50
++msgid "descending"
++msgstr "absteigend"
++
++#: mymenusetup.c:52
++msgid "Show recording date"
++msgstr "Aufnahmedatum anzeigen"
++
++#: mymenusetup.c:53
++msgid "Show recording time"
++msgstr "Aufnahmezeit anzeigen"
++
++#: mymenusetup.c:54
++msgid "Show recording length"
++msgstr "Aufnahmelänge anzeigen"
++
++#: mymenusetup.c:55
++msgid "Show nr. of new recordings of a directory"
++msgstr "Anzahl der neuen Aufz. eines Ordners anzeigen"
++
++#: mymenusetup.c:56
++msgid "Show alternative to new marker"
++msgstr "Alternative zu Neu-Marker anzeigen"
++
++#: mymenusetup.c:57
++msgid "Show free disk space for each file system"
++msgstr "Freien Speicherplatz für jede Partition anzeigen"
++
++#: mymenusetup.c:58
++msgid "Sorting"
++msgstr "Sortierung"
++
++#: mymenusetup.c:59
++msgid "Hide main menu entry"
++msgstr "Hauptmenüeintrag ausblenden"
++
++#: mymenusetup.c:61
++msgid "Replace original recordings menu"
++msgstr "Originales Aufzeichnungsmenü ersetzen"
++
++#: mymenusetup.c:63
++msgid "Jump to last replayed recording"
++msgstr "Springe zur zuletzt abgespielten Aufzeichnung"
++
++#: mymenusetup.c:64
++msgid "Call plugin after playback"
++msgstr "Nach Wiedergabe Plugin aufrufen"
++
++#: mymenusetup.c:66
++msgid "Patch font"
++msgstr "Font patchen"
++
++#: mymenusetup.c:68
++msgid "Limit bandwidth for move recordings"
++msgstr "Bandbreite beim Verschieben begrenzen"
++
++#: mymenusetup.c:69
++msgid "Use VDR's recording info menu"
++msgstr "VDRs Aufzeichnungs-Info-Menü benutzen"
++
++#: mymenusetup.c:70
++msgid "Use cutter queue"
++msgstr "Schnittwarteschlange benutzen"
++
++#: myreplaycontrol.c:47
++msgid "Recording already in cutter queue!"
++msgstr "Aufzeichnung bereits in Schnitt-Warteschlange"
++
++#: myreplaycontrol.c:54
++msgid "No editing marks defined!"
++msgstr ""
++
++#: myreplaycontrol.c:58
++msgid "Added recording to cutter queue"
++msgstr "Aufzeichnung der Schnitt-Warteschlange hinzugefügt"
++
++#: tools.c:113 tools.c:627 tools.c:681
++msgid "Rename/Move failed!"
++msgstr "Umbenennen/Verschieben fehlgeschlagen!"
++
++#: tools.c:273
++msgid "Cutter queue not empty"
++msgstr "Schnitt-Warteschlange nicht leer"
++
++#: tools.c:276
++msgid "Move recordings in progress"
++msgstr "Es werden Aufzeichnungen verschoben"
++
++#: tools.c:315
++msgid "Can't start editing process!"
++msgstr ""
+Index: extrecmenu-1.1/po/extrecmenu.pot
+===================================================================
+--- extrecmenu-1.1/po/extrecmenu.pot
++++ extrecmenu-1.1/po/extrecmenu.pot	2008-04-23 22:37:16.000000000 +0300
+@@ -0,0 +1,311 @@
++# SOME DESCRIPTIVE TITLE.
++# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the PACKAGE package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++#, fuzzy
++msgid ""
++msgstr ""
++"Project-Id-Version: PACKAGE VERSION\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-23 22:37+0300\n"
++"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: LANGUAGE <LL@li.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=CHARSET\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: extrecmenu.c:15
++msgid "Extended recordings menu"
++msgstr ""
++
++#: mymenueditrecording.c:17
++msgid "Rename"
++msgstr ""
++
++#: mymenueditrecording.c:48 mymenueditrecording.c:123 mymenurecordings.c:75
++#: mymenurecordings.c:78
++msgid "Name"
++msgstr ""
++
++#: mymenueditrecording.c:72 mymenueditrecording.c:137
++msgid "Invalid filename!"
++msgstr ""
++
++#: mymenueditrecording.c:85 tools.c:106 tools.c:157 tools.c:566
++msgid "Creating directories failed!"
++msgstr ""
++
++#: mymenueditrecording.c:120 mymenueditrecording.c:122
++msgid "New folder"
++msgstr ""
++
++#: mymenueditrecording.c:217 mymenurecordings.c:545 mymenurecordings.c:547
++#: mymenurecordings.c:548
++msgid "Button$Cancel"
++msgstr ""
++
++#: mymenueditrecording.c:217
++msgid "Button$Create"
++msgstr ""
++
++#: mymenueditrecording.c:217 mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Move"
++msgstr ""
++
++#: mymenueditrecording.c:230 mymenueditrecording.c:304
++msgid "[base dir]"
++msgstr ""
++
++#: mymenueditrecording.c:371 mymenueditrecording.c:394
++msgid "Target filesystem filled - try anyway?"
++msgstr ""
++
++#: mymenueditrecording.c:384 tools.c:133
++msgid "Moving into own sub-directory not allowed!"
++msgstr ""
++
++#: mymenueditrecording.c:420
++msgid "Can't get filesystem information"
++msgstr ""
++
++#: mymenueditrecording.c:468 mymenurecordings.c:1095
++msgid "Details"
++msgstr ""
++
++#: mymenueditrecording.c:474 mymenurecordings.c:92
++msgid "Priority"
++msgstr ""
++
++#: mymenueditrecording.c:475 mymenurecordings.c:93
++msgid "Lifetime"
++msgstr ""
++
++#: mymenurecordings.c:42
++msgid "Recording info"
++msgstr ""
++
++#: mymenurecordings.c:47
++msgid "Button$Back"
++msgstr ""
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Play"
++msgstr ""
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Rewind"
++msgstr ""
++
++#: mymenurecordings.c:76
++msgid "Path"
++msgstr ""
++
++#: mymenurecordings.c:82
++msgid "Channel"
++msgstr ""
++
++#: mymenurecordings.c:88 mymenurecordings.c:90
++msgid "Size"
++msgstr ""
++
++#: mymenurecordings.c:390 mymenurecordings.c:759
++msgid "Error while mounting DVD!"
++msgstr ""
++
++#: mymenurecordings.c:493
++msgid "Recordings"
++msgstr ""
++
++#: mymenurecordings.c:498
++msgid "free"
++msgstr ""
++
++#: mymenurecordings.c:543 mymenurecordings.c:544 mymenurecordings.c:546
++msgid "Button$Edit"
++msgstr ""
++
++#: mymenurecordings.c:543 mymenurecordings.c:548
++msgid "Button$Open"
++msgstr ""
++
++#: mymenurecordings.c:544 mymenurecordings.c:545 mymenurecordings.c:546
++#: mymenurecordings.c:547
++msgid "Button$Commands"
++msgstr ""
++
++#: mymenurecordings.c:544 mymenurecordings.c:545
++msgid "Button$Info"
++msgstr ""
++
++#: mymenurecordings.c:650
++msgid "Error while accessing recording!"
++msgstr ""
++
++#: mymenurecordings.c:723
++#, c-format
++msgid "Please insert DVD %s"
++msgstr ""
++
++#: mymenurecordings.c:740
++msgid "DVD plugin is not installed!"
++msgstr ""
++
++#: mymenurecordings.c:761
++msgid "No DVD in drive!"
++msgstr ""
++
++#: mymenurecordings.c:763
++msgid "Recording not found on DVD!"
++msgstr ""
++
++#: mymenurecordings.c:765
++msgid "Error while linking [0-9]*.vdr!"
++msgstr ""
++
++#: mymenurecordings.c:767
++msgid "sudo or mount --bind / umount error (vfat system)"
++msgstr ""
++
++#: mymenurecordings.c:769
++msgid "Script 'dvdarchive.sh' not found!"
++msgstr ""
++
++#: mymenurecordings.c:819
++msgid "Delete recording?"
++msgstr ""
++
++#: mymenurecordings.c:824
++msgid "Timer still recording - really delete?"
++msgstr ""
++
++#: mymenurecordings.c:857
++msgid "Error while deleting recording!"
++msgstr ""
++
++#: mymenurecordings.c:955
++msgid "Recording commands"
++msgstr ""
++
++#: mymenurecordings.c:981
++msgid "Sort by date"
++msgstr ""
++
++#: mymenurecordings.c:990
++msgid "Sort by name"
++msgstr ""
++
++#: mymenurecordings.c:1051 mymenurecordings.c:1086
++msgid "Cancel moving?"
++msgstr ""
++
++#: mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Rename"
++msgstr ""
++
++#: mymenurecordings.c:1078
++msgid "Cancel editing?"
++msgstr ""
++
++#: mymenurecordings.c:1095
++msgid "Button$Delete"
++msgstr ""
++
++#: mymenusetup.c:49
++msgid "ascending"
++msgstr ""
++
++#: mymenusetup.c:50
++msgid "descending"
++msgstr ""
++
++#: mymenusetup.c:52
++msgid "Show recording date"
++msgstr ""
++
++#: mymenusetup.c:53
++msgid "Show recording time"
++msgstr ""
++
++#: mymenusetup.c:54
++msgid "Show recording length"
++msgstr ""
++
++#: mymenusetup.c:55
++msgid "Show nr. of new recordings of a directory"
++msgstr ""
++
++#: mymenusetup.c:56
++msgid "Show alternative to new marker"
++msgstr ""
++
++#: mymenusetup.c:57
++msgid "Show free disk space for each file system"
++msgstr ""
++
++#: mymenusetup.c:58
++msgid "Sorting"
++msgstr ""
++
++#: mymenusetup.c:59
++msgid "Hide main menu entry"
++msgstr ""
++
++#: mymenusetup.c:61
++msgid "Replace original recordings menu"
++msgstr ""
++
++#: mymenusetup.c:63
++msgid "Jump to last replayed recording"
++msgstr ""
++
++#: mymenusetup.c:64
++msgid "Call plugin after playback"
++msgstr ""
++
++#: mymenusetup.c:66
++msgid "Patch font"
++msgstr ""
++
++#: mymenusetup.c:68
++msgid "Limit bandwidth for move recordings"
++msgstr ""
++
++#: mymenusetup.c:69
++msgid "Use VDR's recording info menu"
++msgstr ""
++
++#: mymenusetup.c:70
++msgid "Use cutter queue"
++msgstr ""
++
++#: myreplaycontrol.c:47
++msgid "Recording already in cutter queue!"
++msgstr ""
++
++#: myreplaycontrol.c:54
++msgid "No editing marks defined!"
++msgstr ""
++
++#: myreplaycontrol.c:58
++msgid "Added recording to cutter queue"
++msgstr ""
++
++#: tools.c:113 tools.c:627 tools.c:681
++msgid "Rename/Move failed!"
++msgstr ""
++
++#: tools.c:273
++msgid "Cutter queue not empty"
++msgstr ""
++
++#: tools.c:276
++msgid "Move recordings in progress"
++msgstr ""
++
++#: tools.c:315
++msgid "Can't start editing process!"
++msgstr ""
+Index: extrecmenu-1.1/po/fi_FI.po
+===================================================================
+--- extrecmenu-1.1/po/fi_FI.po
++++ extrecmenu-1.1/po/fi_FI.po	2008-04-23 22:37:16.000000000 +0300
+@@ -0,0 +1,310 @@
++# VDR extrecmenu plugin language source file.
++# Copyright (C) YEAR THE VDR-extrecmenu'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-extrecmenu package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-extrecmenu\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-23 22:37+0300\n"
++"PO-Revision-Date: 2008-04-23 22:37+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-15\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: extrecmenu.c:15
++msgid "Extended recordings menu"
++msgstr "Laajennettu tallennevalikko"
++
++#: mymenueditrecording.c:17
++msgid "Rename"
++msgstr "Nimeä"
++
++#: mymenueditrecording.c:48 mymenueditrecording.c:123 mymenurecordings.c:75
++#: mymenurecordings.c:78
++msgid "Name"
++msgstr ""
++
++#: mymenueditrecording.c:72 mymenueditrecording.c:137
++msgid "Invalid filename!"
++msgstr "Virheellinen tiedoston nimi!"
++
++#: mymenueditrecording.c:85 tools.c:106 tools.c:157 tools.c:566
++msgid "Creating directories failed!"
++msgstr ""
++
++#: mymenueditrecording.c:120 mymenueditrecording.c:122
++msgid "New folder"
++msgstr "Uusi kansio"
++
++#: mymenueditrecording.c:217 mymenurecordings.c:545 mymenurecordings.c:547
++#: mymenurecordings.c:548
++msgid "Button$Cancel"
++msgstr "Peruuta"
++
++#: mymenueditrecording.c:217
++msgid "Button$Create"
++msgstr "Luo"
++
++#: mymenueditrecording.c:217 mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Move"
++msgstr "Siirrä"
++
++#: mymenueditrecording.c:230 mymenueditrecording.c:304
++msgid "[base dir]"
++msgstr "[juurihakemisto]"
++
++#: mymenueditrecording.c:371 mymenueditrecording.c:394
++msgid "Target filesystem filled - try anyway?"
++msgstr ""
++
++#: mymenueditrecording.c:384 tools.c:133
++msgid "Moving into own sub-directory not allowed!"
++msgstr "Siirto omaan alihakemistoon ei ole sallittu!"
++
++#: mymenueditrecording.c:420
++msgid "Can't get filesystem information"
++msgstr "Tiedostojärjestelmän tietojen lukeminen epäonnistui"
++
++#: mymenueditrecording.c:468 mymenurecordings.c:1095
++msgid "Details"
++msgstr "Lisätiedot"
++
++#: mymenueditrecording.c:474 mymenurecordings.c:92
++msgid "Priority"
++msgstr ""
++
++#: mymenueditrecording.c:475 mymenurecordings.c:93
++msgid "Lifetime"
++msgstr ""
++
++#: mymenurecordings.c:42
++msgid "Recording info"
++msgstr ""
++
++#: mymenurecordings.c:47
++msgid "Button$Back"
++msgstr "Takaisin"
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Play"
++msgstr "Toista"
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Rewind"
++msgstr "Alkuun"
++
++#: mymenurecordings.c:76
++msgid "Path"
++msgstr "Polku"
++
++#: mymenurecordings.c:82
++msgid "Channel"
++msgstr ""
++
++#: mymenurecordings.c:88 mymenurecordings.c:90
++msgid "Size"
++msgstr "Koko"
++
++#: mymenurecordings.c:390 mymenurecordings.c:759
++msgid "Error while mounting DVD!"
++msgstr "DVD:n avaaminen epäonnistui!"
++
++#: mymenurecordings.c:493
++msgid "Recordings"
++msgstr ""
++
++#: mymenurecordings.c:498
++msgid "free"
++msgstr ""
++
++#: mymenurecordings.c:543 mymenurecordings.c:544 mymenurecordings.c:546
++msgid "Button$Edit"
++msgstr "Muokkaa"
++
++#: mymenurecordings.c:543 mymenurecordings.c:548
++msgid "Button$Open"
++msgstr "Avaa"
++
++#: mymenurecordings.c:544 mymenurecordings.c:545 mymenurecordings.c:546
++#: mymenurecordings.c:547
++msgid "Button$Commands"
++msgstr "Komennot"
++
++#: mymenurecordings.c:544 mymenurecordings.c:545
++msgid "Button$Info"
++msgstr "Tiedot"
++
++#: mymenurecordings.c:650
++msgid "Error while accessing recording!"
++msgstr ""
++
++#: mymenurecordings.c:723
++#, c-format
++msgid "Please insert DVD %s"
++msgstr "Laita DVD %s asemaan"
++
++#: mymenurecordings.c:740
++msgid "DVD plugin is not installed!"
++msgstr "DVD-laajennosta ei löydy!"
++
++#: mymenurecordings.c:761
++msgid "No DVD in drive!"
++msgstr "Asemassa ei ole DVD-levyä!"
++
++#: mymenurecordings.c:763
++msgid "Recording not found on DVD!"
++msgstr "Tallennetta ei löydy DVD:ltä!"
++
++#: mymenurecordings.c:765
++msgid "Error while linking [0-9]*.vdr!"
++msgstr "Tiedostojen [0-9]*.vdr linkittäminen epäonnistui!"
++
++#: mymenurecordings.c:767
++msgid "sudo or mount --bind / umount error (vfat system)"
++msgstr "Sudo tai mount --bind / umount -komento epäonnistui (VFAT)!"
++
++#: mymenurecordings.c:769
++msgid "Script 'dvdarchive.sh' not found!"
++msgstr "'dvdarchive.sh'-skriptiä ei löydetä!"
++
++#: mymenurecordings.c:819
++msgid "Delete recording?"
++msgstr ""
++
++#: mymenurecordings.c:824
++msgid "Timer still recording - really delete?"
++msgstr ""
++
++#: mymenurecordings.c:857
++msgid "Error while deleting recording!"
++msgstr ""
++
++#: mymenurecordings.c:955
++msgid "Recording commands"
++msgstr ""
++
++#: mymenurecordings.c:981
++msgid "Sort by date"
++msgstr "Tallenteet järjestetään päivämäärän mukaan"
++
++#: mymenurecordings.c:990
++msgid "Sort by name"
++msgstr "Tallenteet järjestetään nimen mukaan"
++
++#: mymenurecordings.c:1051 mymenurecordings.c:1086
++msgid "Cancel moving?"
++msgstr "Peruutetaanko siirto?"
++
++#: mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Rename"
++msgstr "Nimeä"
++
++#: mymenurecordings.c:1078
++msgid "Cancel editing?"
++msgstr ""
++
++#: mymenurecordings.c:1095
++msgid "Button$Delete"
++msgstr "Poista"
++
++#: mymenusetup.c:49
++msgid "ascending"
++msgstr "nouseva"
++
++#: mymenusetup.c:50
++msgid "descending"
++msgstr "laskeva"
++
++#: mymenusetup.c:52
++msgid "Show recording date"
++msgstr "Näytä tallenteen päiväys"
++
++#: mymenusetup.c:53
++msgid "Show recording time"
++msgstr "Näytä tallenteen ajankohta"
++
++#: mymenusetup.c:54
++msgid "Show recording length"
++msgstr "Näytä tallenteen kesto"
++
++#: mymenusetup.c:55
++msgid "Show nr. of new recordings of a directory"
++msgstr "Näytä uusien tallenteiden lukumäärä"
++
++#: mymenusetup.c:56
++msgid "Show alternative to new marker"
++msgstr "Merkitse uudet tallenteet symbolilla"
++
++#: mymenusetup.c:57
++msgid "Show free disk space for each file system"
++msgstr "Näytä vapaa levytila jokaisella tiedostojärjestelmällä"
++
++#: mymenusetup.c:58
++msgid "Sorting"
++msgstr "Järjestys"
++
++#: mymenusetup.c:59
++msgid "Hide main menu entry"
++msgstr "Piilota valinta päävalikosta"
++
++#: mymenusetup.c:61
++msgid "Replace original recordings menu"
++msgstr "Korvaa alkuperäinen tallennevalikko"
++
++#: mymenusetup.c:63
++msgid "Jump to last replayed recording"
++msgstr "Siirry viimeksi toistettuun tallenteeseen"
++
++#: mymenusetup.c:64
++msgid "Call plugin after playback"
++msgstr "Avaa laajennos toiston loputtua"
++
++#: mymenusetup.c:66
++msgid "Patch font"
++msgstr "Käytä paikattua kirjasinta"
++
++#: mymenusetup.c:68
++msgid "Limit bandwidth for move recordings"
++msgstr "Rajoita tallenteiden siirtokaistaa"
++
++#: mymenusetup.c:69
++msgid "Use VDR's recording info menu"
++msgstr "Käytä alkuperäistä tallenteen tiedot -valikkoa"
++
++#: mymenusetup.c:70
++msgid "Use cutter queue"
++msgstr ""
++
++#: myreplaycontrol.c:47
++msgid "Recording already in cutter queue!"
++msgstr "Tallenne on jo leikkausjonossa!"
++
++#: myreplaycontrol.c:54
++msgid "No editing marks defined!"
++msgstr ""
++
++#: myreplaycontrol.c:58
++msgid "Added recording to cutter queue"
++msgstr "Tallenne on lisätty leikkausjonoon"
++
++#: tools.c:113 tools.c:627 tools.c:681
++msgid "Rename/Move failed!"
++msgstr "Nimeäminen/siirto epäonnistui!"
++
++#: tools.c:273
++msgid "Cutter queue not empty"
++msgstr "Leikkausjono ei ole tyhjä"
++
++#: tools.c:276
++msgid "Move recordings in progress"
++msgstr "Tallenteiden siirto käynnissä"
++
++#: tools.c:315
++msgid "Can't start editing process!"
++msgstr ""
+Index: extrecmenu-1.1/po/fr_FR.po
+===================================================================
+--- extrecmenu-1.1/po/fr_FR.po
++++ extrecmenu-1.1/po/fr_FR.po	2008-04-23 22:37:16.000000000 +0300
+@@ -0,0 +1,310 @@
++# VDR extrecmenu plugin language source file.
++# Copyright (C) YEAR THE VDR-extrecmenu'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-extrecmenu package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-extrecmenu\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-23 22:37+0300\n"
++"PO-Revision-Date: 2008-04-23 22:37+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-1\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: extrecmenu.c:15
++msgid "Extended recordings menu"
++msgstr "Menu enregistrement étandu"
++
++#: mymenueditrecording.c:17
++msgid "Rename"
++msgstr "Renommer"
++
++#: mymenueditrecording.c:48 mymenueditrecording.c:123 mymenurecordings.c:75
++#: mymenurecordings.c:78
++msgid "Name"
++msgstr ""
++
++#: mymenueditrecording.c:72 mymenueditrecording.c:137
++msgid "Invalid filename!"
++msgstr "Nom de fichiers n'est pas valide'"
++
++#: mymenueditrecording.c:85 tools.c:106 tools.c:157 tools.c:566
++msgid "Creating directories failed!"
++msgstr ""
++
++#: mymenueditrecording.c:120 mymenueditrecording.c:122
++msgid "New folder"
++msgstr "Nouveau dossier"
++
++#: mymenueditrecording.c:217 mymenurecordings.c:545 mymenurecordings.c:547
++#: mymenurecordings.c:548
++msgid "Button$Cancel"
++msgstr "Interrompre"
++
++#: mymenueditrecording.c:217
++msgid "Button$Create"
++msgstr "Créer"
++
++#: mymenueditrecording.c:217 mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Move"
++msgstr "Déplacer"
++
++#: mymenueditrecording.c:230 mymenueditrecording.c:304
++msgid "[base dir]"
++msgstr "[Dossier racine]"
++
++#: mymenueditrecording.c:371 mymenueditrecording.c:394
++msgid "Target filesystem filled - try anyway?"
++msgstr ""
++
++#: mymenueditrecording.c:384 tools.c:133
++msgid "Moving into own sub-directory not allowed!"
++msgstr "Déplacer dans le sous-dossier propre, n'est pas possible!"
++
++#: mymenueditrecording.c:420
++msgid "Can't get filesystem information"
++msgstr "Impossible de déterminer les informations du système de fichiers"
++
++#: mymenueditrecording.c:468 mymenurecordings.c:1095
++msgid "Details"
++msgstr "Détails"
++
++#: mymenueditrecording.c:474 mymenurecordings.c:92
++msgid "Priority"
++msgstr ""
++
++#: mymenueditrecording.c:475 mymenurecordings.c:93
++msgid "Lifetime"
++msgstr ""
++
++#: mymenurecordings.c:42
++msgid "Recording info"
++msgstr ""
++
++#: mymenurecordings.c:47
++msgid "Button$Back"
++msgstr "Retour"
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Play"
++msgstr "Montrer"
++
++#: mymenurecordings.c:47 mymenurecordings.c:544 mymenurecordings.c:545
++#: mymenurecordings.c:546 mymenurecordings.c:547
++msgid "Button$Rewind"
++msgstr "Début"
++
++#: mymenurecordings.c:76
++msgid "Path"
++msgstr "Chemin"
++
++#: mymenurecordings.c:82
++msgid "Channel"
++msgstr ""
++
++#: mymenurecordings.c:88 mymenurecordings.c:90
++msgid "Size"
++msgstr "Taille"
++
++#: mymenurecordings.c:390 mymenurecordings.c:759
++msgid "Error while mounting DVD!"
++msgstr "Erreur lors du montage du DVD!"
++
++#: mymenurecordings.c:493
++msgid "Recordings"
++msgstr ""
++
++#: mymenurecordings.c:498
++msgid "free"
++msgstr ""
++
++#: mymenurecordings.c:543 mymenurecordings.c:544 mymenurecordings.c:546
++msgid "Button$Edit"
++msgstr "Éditer"
++
++#: mymenurecordings.c:543 mymenurecordings.c:548
++msgid "Button$Open"
++msgstr "Ouvrir"
++
++#: mymenurecordings.c:544 mymenurecordings.c:545 mymenurecordings.c:546
++#: mymenurecordings.c:547
++msgid "Button$Commands"
++msgstr "Commande"
++
++#: mymenurecordings.c:544 mymenurecordings.c:545
++msgid "Button$Info"
++msgstr "Info"
++
++#: mymenurecordings.c:650
++msgid "Error while accessing recording!"
++msgstr ""
++
++#: mymenurecordings.c:723
++#, c-format
++msgid "Please insert DVD %s"
++msgstr "Mettez le DVD %s dans le lecteur"
++
++#: mymenurecordings.c:740
++msgid "DVD plugin is not installed!"
++msgstr "Le plugin DVD n'est pas installé!"
++
++#: mymenurecordings.c:761
++msgid "No DVD in drive!"
++msgstr "Pas de DVD dans le lecteur!"
++
++#: mymenurecordings.c:763
++msgid "Recording not found on DVD!"
++msgstr "Il n'y a pas d'enregistrement sur le DVD!"
++
++#: mymenurecordings.c:765
++msgid "Error while linking [0-9]*.vdr!"
++msgstr "Erreur lors de la création des racourcis [0-9]*.vdr!"
++
++#: mymenurecordings.c:767
++msgid "sudo or mount --bind / umount error (vfat system)"
++msgstr "Erreur sudo ou mount --bind / umount (Systeme VFAT)"
++
++#: mymenurecordings.c:769
++msgid "Script 'dvdarchive.sh' not found!"
++msgstr "Impossible de trouver le script 'dvdarchive.sh'!"
++
++#: mymenurecordings.c:819
++msgid "Delete recording?"
++msgstr ""
++
++#: mymenurecordings.c:824
++msgid "Timer still recording - really delete?"
++msgstr ""
++
++#: mymenurecordings.c:857
++msgid "Error while deleting recording!"
++msgstr ""
++
++#: mymenurecordings.c:955
++msgid "Recording commands"
++msgstr ""
++
++#: mymenurecordings.c:981
++msgid "Sort by date"
++msgstr "Triage selon date"
++
++#: mymenurecordings.c:990
++msgid "Sort by name"
++msgstr "Triage selon le nom"
++
++#: mymenurecordings.c:1051 mymenurecordings.c:1086
++msgid "Cancel moving?"
++msgstr "Interrompre le déplacement?"
++
++#: mymenurecordings.c:1064 mymenurecordings.c:1095
++msgid "Button$Rename"
++msgstr "Renommer"
++
++#: mymenurecordings.c:1078
++msgid "Cancel editing?"
++msgstr ""
++
++#: mymenurecordings.c:1095
++msgid "Button$Delete"
++msgstr "Effacer"
++
++#: mymenusetup.c:49
++msgid "ascending"
++msgstr "montant"
++
++#: mymenusetup.c:50
++msgid "descending"
++msgstr "descendant"
++
++#: mymenusetup.c:52
++msgid "Show recording date"
++msgstr "Afiicher la date d'enregistrement"
++
++#: mymenusetup.c:53
++msgid "Show recording time"
++msgstr "Afficher l'heure d'enregistrement"
++
++#: mymenusetup.c:54
++msgid "Show recording length"
++msgstr "Afficher la longeur de l'enregistrement"
++
++#: mymenusetup.c:55
++msgid "Show nr. of new recordings of a directory"
++msgstr "Afficher le nombre de nouveaux enregistrements dans les dossiers"
++
++#: mymenusetup.c:56
++msgid "Show alternative to new marker"
++msgstr "Afficher les nouveaux symbols alternatifs"
++
++#: mymenusetup.c:57
++msgid "Show free disk space for each file system"
++msgstr "Afficher la place libre de chaque partition"
++
++#: mymenusetup.c:58
++msgid "Sorting"
++msgstr "Triage"
++
++#: mymenusetup.c:59
++msgid "Hide main menu entry"
++msgstr "Menu Enregistrement étandu invisible"
++
++#: mymenusetup.c:61
++msgid "Replace original recordings menu"
++msgstr "Remplacer le nenu original Enregistrement"
++
++#: mymenusetup.c:63
++msgid "Jump to last replayed recording"
++msgstr "Retour au dernier enregistrement lu"
++
++#: mymenusetup.c:64
++msgid "Call plugin after playback"
++msgstr "Après la lecture démarer le plugin"
++
++#: mymenusetup.c:66
++msgid "Patch font"
++msgstr "Patch des police"
++
++#: mymenusetup.c:68
++msgid "Limit bandwidth for move recordings"
++msgstr "Limiter la bande passante lors du déplacement"
++
++#: mymenusetup.c:69
++msgid "Use VDR's recording info menu"
++msgstr "Utiliser le menu info enregistrement de VDR"
++
++#: mymenusetup.c:70
++msgid "Use cutter queue"
++msgstr ""
++
++#: myreplaycontrol.c:47
++msgid "Recording already in cutter queue!"
++msgstr "L'enregistrement est déjà dans la queue d'attente découpe!"
++
++#: myreplaycontrol.c:54
++msgid "No editing marks defined!"
++msgstr ""
++
++#: myreplaycontrol.c:58
++msgid "Added recording to cutter queue"
++msgstr "Enregistrement ajouté à la file d'attente de découpe"
++
++#: tools.c:113 tools.c:627 tools.c:681
++msgid "Rename/Move failed!"
++msgstr "Renommer/déplacer à échoué!"
++
++#: tools.c:273
++msgid "Cutter queue not empty"
++msgstr "Queue d'attente découpe n'est pas vide"
++
++#: tools.c:276
++msgid "Move recordings in progress"
++msgstr "Des enregistrements sont en déplacement"
++
++#: tools.c:315
++msgid "Can't start editing process!"
++msgstr ""

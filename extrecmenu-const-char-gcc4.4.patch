@@ -1,0 +1,51 @@
+Index: extrecmenu-1.1/mymenueditrecording.c
+===================================================================
+--- extrecmenu-1.1/mymenueditrecording.c
++++ extrecmenu-1.1/mymenueditrecording.c	2009-07-27 18:06:29.653093813 +0300
+@@ -25,15 +25,15 @@
+ 
+  if(recording)
+  {
+-  char *p=strrchr(recording->Name(),'~');
++  const char *p=strrchr(recording->Name(),'~');
+   if(p)
+   {
+    strn0cpy(name,++p,sizeof(name));
+    strn0cpy(path,recording->Name(),sizeof(path));
+    
+-   p=strrchr(path,'~');
+-   if(p)
+-    *p=0;
++   char *t=strrchr(path,'~');
++   if(t)
++    *t=0;
+   }
+   else
+    strn0cpy(name,recording->Name(),sizeof(name));  
+@@ -307,7 +307,7 @@
+         asprintf(&dir,"%s%s%s",base?base:"",base?"~":"",item->Text());
+       else  // needed for move recording menu
+       {
+-        char *p=strrchr(recording->Name(),'~');
++        const char *p=strrchr(recording->Name(),'~');
+         asprintf(&dir,"%s%s%s~%s",base?base:"",base?"~":"",item->Text(),p?p+1:recording->Name());
+       }
+     }
+@@ -315,7 +315,7 @@
+     {
+       if(!dirname)
+       {
+-        char *p=strrchr(recording->Name(),'~');
++        const char *p=strrchr(recording->Name(),'~');
+         asprintf(&dir,"%s",p?++p:recording->Name());
+       }
+     }
+@@ -326,7 +326,7 @@
+       asprintf(&dir,"%s",base);
+     else
+     {
+-      char *p=strrchr(recording->Name(),'~');
++      const char *p=strrchr(recording->Name(),'~');
+       asprintf(&dir,"%s~%s",base,p?p:recording->Name());
+     }
+   }
