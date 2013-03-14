@@ -2,7 +2,7 @@
 %define plugin	extrecmenu
 %define name	vdr-plugin-%plugin
 %define version	1.1
-%define rel	6
+%define rel	7
 
 Summary:	VDR plugin: Extended recordings menu
 Name:		%name
@@ -15,7 +15,6 @@ Source:		http://martins-kabuff.de/download/vdr-%plugin-%version.tgz
 Patch0:		extrecmenu-1.1-i18n-1.6.patch
 Patch1:		extrecmenu-const-char-gcc4.4.patch
 Patch2:		extrecmenu-graphtft.patch
-BuildRoot:	%{_tmppath}/%{name}-buildroot
 BuildRequires:	vdr-devel >= 1.6.0
 Requires:	vdr-abi = %vdr_abi
 
@@ -40,17 +39,7 @@ VDR_PLUGIN_EXTRA_FLAGS="-DUSE_GRAPHTFT"
 %vdr_plugin_build
 
 %install
-rm -rf %{buildroot}
 %vdr_plugin_install
-
-%clean
-rm -rf %{buildroot}
-
-%post
-%vdr_plugin_post %plugin
-
-%postun
-%vdr_plugin_postun %plugin
 
 %files -f %plugin.vdr
 %defattr(-,root,root)
