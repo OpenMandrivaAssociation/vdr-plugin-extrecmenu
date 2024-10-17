@@ -6,7 +6,7 @@ Version:	1.2.4
 Release:	1
 Group:		Video
 License:	GPL
-URL:		http://projects.vdr-developer.org/projects/show/plg-extrecmenu
+URL:		https://projects.vdr-developer.org/projects/show/plg-extrecmenu
 Source:		http://projects.vdr-developer.org/git/vdr-plugin-extrecmenu.git/snapshot/vdr-plugin-%plugin-%{version}.tar.bz2
 BuildRequires:	vdr-devel >= 1.6.0
 Requires:	vdr-abi = %vdr_abi
